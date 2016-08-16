@@ -90,12 +90,22 @@ void  dumpInfo (decode_results *results)
 void  repeatCode (decode_results *results)
 {
   // All protocols have data
-  Serial.print("unsigned int  data = 0x");
-  Serial.print(results->value, HEX);
-  Serial.println(";");
+  //Serial.print("unsigned int  data = 0x");
+  //Serial.print(results->value, HEX);
+  //Serial.println(";");
 
-  irsend.sendNEC(results->value, 32);
+}
 
+void sendSamsungPowerCode() {
+  /*
+   * Samsung power on
+  unsigned int data = 0xE0E040BF;
+  irsend.sendSAMSUNG(data, 32);
+  */
+  int khz = 39; // 38kHz carrier frequency for the NEC protocol
+  unsigned int  rawData[67] = {4400,4450, 550,1650, 550,1650, 550,1700, 550,550, 550,550, 550,550, 550,550, 550,550, 600,1650, 500,1700, 550,1650, 550,550, 550,550, 550,600, 550,550, 550,550, 550,550, 550,1650, 550,550, 650,500, 500,600, 550,550, 550,550, 550,550, 550,1650, 550,550, 550,1700, 550,1650, 600,1600, 550,1700, 550,1650, 550,1650, 550};  // SAMSUNG E0E040BF
+  irsend.sendRaw(rawData, sizeof(rawData) / sizeof(rawData[0]), khz);
+  
   irrecv.enableIRIn();
 }
 
@@ -104,13 +114,16 @@ void  repeatCode (decode_results *results)
 //
 void  loop ( )
 {
+  /*
   decode_results  results;        // Somewhere to store the results
 
   if (irrecv.decode(&results)) {  // Grab an IR code
-    dumpInfo(&results);           // Output the results
+    //dumpInfo(&results);           // Output the results
     irrecv.resume();              // Prepare for the next value
 
     repeatCode(&results);
 
-  } 
+  }*/
+  sendSamsungPowerCode();
+  delay(1000);
 }
