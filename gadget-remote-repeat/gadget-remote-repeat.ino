@@ -1,45 +1,61 @@
-//------------------------------------------------------------------------------
-// Include the IRremote library header
-//
 #include <IRremote.h>
 
-//------------------------------------------------------------------------------
-// Tell IRremote which Arduino pin is connected to the IR Receiver (TSOP4838)
-//
-int recvPin = 11;
+const int recvPin = 11;
+const int khz = 39; // observed 39 gives closer to 38.5kHz carrier which remote uses 
 IRrecv irrecv(recvPin);
 IRsend irsend;
+decode_results results;
 
-//+=============================================================================
-// Configure the Arduino
-//
-void  setup ( )
-{
+// Storage for the recorded code
+unsigned int rawCodes[RAWBUF]; // The durations if raw
+int codeLen; // The length of the code
+
+// Stores the code for later playback
+// Most of this code is just logging
+void storeCode(decode_results *results) {
+  int count = results->rawlen;
+  codeLen = results->rawlen - 1;
+  // To store raw codes:
+  // Drop first value (gap)
+  // Convert from ticks to microseconds
+  // Tweak marks shorter, and spaces longer to cancel out IR receiver distortion
+  for (int i = 1; i <= codeLen; i++) {
+    if (i % 2) {
+      // Mark
+      rawCodes[i - 1] = results->rawbuf[i]*USECPERTICK - MARK_EXCESS;
+    } 
+    else {
+      // Space
+      rawCodes[i - 1] = results->rawbuf[i]*USECPERTICK + MARK_EXCESS;
+    }
+  }
+  Serial.println("Saved raw code.");
+}
+
+void sendCode() {
+  irsend.sendRaw(rawCodes, codeLen, khz);
+  Serial.println("Sent raw.");
+  irrecv.enableIRIn();
+}
+
+void setup() {
   Serial.begin(9600);   // Status message will be sent to PC at 9600 baud
   irrecv.enableIRIn();  // Start the receiver
 }
 
-//+=============================================================================
-// Display IR code
-//
-void  ircode (decode_results *results)
-{
+void ircode(decode_results *result) {
   // Panasonic has an Address
-  if (results->decode_type == PANASONIC) {
-    Serial.print(results->address, HEX);
+  if (result->decode_type == PANASONIC) {
+    Serial.print(result->address, HEX);
     Serial.print(":");
   }
 
   // Print Code
-  Serial.print(results->value, HEX);
+  Serial.print(result->value, HEX);
 }
 
-//+=============================================================================
-// Display encoding type
-//
-void  encoding (decode_results *results)
-{
-  switch (results->decode_type) {
+void encoding(decode_results *result) {
+  switch (result->decode_type) {
     default:
     case UNKNOWN:      Serial.print("UNKNOWN");       break ;
     case NEC:          Serial.print("NEC");           break ;
@@ -60,70 +76,54 @@ void  encoding (decode_results *results)
   }
 }
 
-//+=============================================================================
-// Dump out the decode_results structure.
-//
-void  dumpInfo (decode_results *results)
-{
+void dumpInfo(decode_results *result) {
   // Check if the buffer overflowed
-  if (results->overflow) {
+  if (result->overflow) {
     Serial.println("IR code too long. Edit IRremoteInt.h and increase RAWLEN");
     return;
   }
 
   // Show Encoding standard
   Serial.print("Encoding  : ");
-  encoding(results);
+  encoding(result);
   Serial.println("");
 
   // Show Code & length
   Serial.print("Code      : ");
-  ircode(results);
+  ircode(result);
   Serial.print(" (");
-  Serial.print(results->bits, DEC);
+  Serial.print(result->bits, DEC);
   Serial.println(" bits)");
 }
 
-//+=============================================================================
-// Repeat code.
-//
-void  repeatCode (decode_results *results)
-{
-  // All protocols have data
-  //Serial.print("unsigned int  data = 0x");
-  //Serial.print(results->value, HEX);
-  //Serial.println(";");
-
+void repeatCode(decode_results *result) {
+  //irsend.sendRaw((const unsigned int*) result->rawbuf, result->rawlen, khz); //needs to have USECPPERTICK 
+  sendSamsungPowerCode();
 }
 
 void sendSamsungPowerCode() {
   /*
    * Samsung power on
   unsigned int data = 0xE0E040BF;
-  irsend.sendSAMSUNG(data, 32);
   */
-  int khz = 39; // 38kHz carrier frequency for the NEC protocol
-  unsigned int  rawData[67] = {4400,4450, 550,1650, 550,1650, 550,1700, 550,550, 550,550, 550,550, 550,550, 550,550, 600,1650, 500,1700, 550,1650, 550,550, 550,550, 550,600, 550,550, 550,550, 550,550, 550,1650, 550,550, 650,500, 500,600, 550,550, 550,550, 550,550, 550,1650, 550,550, 550,1700, 550,1650, 600,1600, 550,1700, 550,1650, 550,1650, 550};  // SAMSUNG E0E040BF
+  unsigned int rawData[67] = {4400,4450, 550,1650, 550,1650, 550,1700, 550,550, 550,550, 550,550, 550,550, 550,550, 600,1650, 500,1700, 550,1650, 550,550, 550,550, 550,600, 550,550, 550,550, 550,550, 550,1650, 550,550, 650,500, 500,600, 550,550, 550,550, 550,550, 550,1650, 550,550, 550,1700, 550,1650, 600,1600, 550,1700, 550,1650, 550,1650, 550};  // SAMSUNG E0E040BF
   irsend.sendRaw(rawData, sizeof(rawData) / sizeof(rawData[0]), khz);
   
   irrecv.enableIRIn();
 }
 
-//+=============================================================================
-// The repeating section of the code
-//
-void  loop ( )
-{
-  /*
-  decode_results  results;        // Somewhere to store the results
+void loop() {
 
   if (irrecv.decode(&results)) {  // Grab an IR code
-    //dumpInfo(&results);           // Output the results
-    irrecv.resume();              // Prepare for the next value
-
-    repeatCode(&results);
-
-  }*/
+    dumpInfo(&results);
+    storeCode(&results);
+    irrecv.resume(); 
+    delay(2000);
+    // Prepare for the next value
+    sendCode();
+  }
+  /*
   sendSamsungPowerCode();
   delay(1000);
+  */
 }
