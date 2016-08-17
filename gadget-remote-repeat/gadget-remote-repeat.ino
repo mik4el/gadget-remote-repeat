@@ -118,7 +118,7 @@ void loop() {
     dumpInfo(&results);
     storeCode(&results);
     irrecv.resume(); 
-    delay(2000);
+    delay(100);
     // Prepare for the next value
     sendCode();
   }
