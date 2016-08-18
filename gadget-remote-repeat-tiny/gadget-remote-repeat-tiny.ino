@@ -2,7 +2,7 @@
 
 #define STATUS_PIN 3
 #define RECEIVE_PIN 2
-#define KHZ 38 // observed that 39 gives closer to 38.5kHz carrier which remote uses on nano
+#define KHZ 38 // observed that 38 gives closer to 38.5kHz carrier which remote uses on attiny85
 //Nano send pin 3
 
 IRrecv irrecv(RECEIVE_PIN);
