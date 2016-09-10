@@ -11,4 +11,7 @@ The pcb, where more details can be found in the hardware folder, is a minimal tw
 ![alt tag](https://github.com/mik4el/gadget-remote-repeat/blob/master/gadget-remote-repeat-hardware/pcb_top.png)
 
 ## Software dependencies
-The software is based on Arduino and uses the external library tiny_IRremote adopted by https://github.com/SeeJayDee from the popular https://github.com/z3t0/Arduino-IRremote library. I have made modified the library to be even smaller for the current usage. To include the current library please follow e.g. https://www.arduino.cc/en/Guide/Libraries to install an external library.
+The software is based on Arduino and uses the external library tiny_IRremote adopted by https://github.com/SeeJayDee from the popular https://github.com/z3t0/Arduino-IRremote library. I have made modifications to the library to be even smaller for the current usage. The modified library is in ```gadget-remote-repeat-tiny```. To include the current library please follow e.g. https://www.arduino.cc/en/Guide/Libraries to install an external library.
+
+## Structure of repo
+For an Attiny85 version of the software, please see ```gadget-remote-repeat-tiny```. For other Arduino platforms please see ```gadget-remote-repeat```.
