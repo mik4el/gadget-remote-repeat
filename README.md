@@ -2,7 +2,7 @@
 Repeats IR remote signals received at e.g. a TV to a connected IR LED connected to a long wire placed e.g. inside a cabinet. This is also a minimal footprint platform to receive standard IR signals, manipulate them and to send standard IR signals.
 
 ## Hardware
-The hardware consists of a standard IR receiver (TSOP38238) and an Attiny85 to process the signal and to control sending a new signal.
+The hardware consists of a standard IR receiver (TSOP38238) and an Attiny85 to process the signal and to control sending a new signal. The application is powered by USB micro from e.g. the USB output from a TV.
 
 ![alt tag](https://github.com/mik4el/gadget-remote-repeat/blob/master/remote_repeat_20160908_2.JPG)
 
